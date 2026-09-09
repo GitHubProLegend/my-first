@@ -708,3 +708,314 @@ a:hover { text-decoration: underline; }
   .nav, .sheet, .scrim, .toast, .rail__nav { display: none !important; }
   body { background: #fff; color: #000; }
 }
+
+/* ==========================================================================
+   Landing page
+   ========================================================================== */
+
+/* --- Hero ---------------------------------------------------------------- */
+.hero3d {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding: calc(var(--nav-h) + 40px) 0 60px;
+  background: var(--bg-deep);
+  color: var(--ink-on-deep);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* A wide, soft court-light wash rather than a hard vignette. */
+.hero3d::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 120%;
+  z-index: 0;
+  background:
+    radial-gradient(60% 55% at 72% 42%, rgba(255, 122, 40, 0.30), transparent 68%),
+    radial-gradient(45% 50% at 22% 78%, rgba(90, 70, 255, 0.14), transparent 70%);
+  pointer-events: none;
+}
+/* Faint court lines, so the black has something in it. */
+.hero3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 68px 68px;
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 45%, #000, transparent 78%);
+          mask-image: radial-gradient(70% 60% at 50% 45%, #000, transparent 78%);
+  pointer-events: none;
+}
+
+.hero3d__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+/* The measure belongs to the paragraph, not to the whole column — putting it
+   on the block was squeezing the headline and stacking the buttons. */
+.hero3d__copy { max-width: 33rem; }
+.hero3d__copy .t-display {
+  color: #fff;
+  font-size: clamp(2.5rem, 4.6vw, 4.15rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+.hero3d__copy .t-display em {
+  font-style: normal;
+  background: linear-gradient(96deg, #ffb066, #ff6a1f 58%, #ff8f3d);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+.hero3d__sub {
+  margin: 22px 0 0;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.45;
+  letter-spacing: -0.008em;
+  color: rgba(245, 245, 247, 0.68);
+  max-width: 36ch;
+}
+.hero3d__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+
+.hero3d__meta {
+  display: flex; flex-wrap: wrap; gap: 8px 26px;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.hero3d__meta div { min-width: 88px; }
+.hero3d__meta b {
+  display: block;
+  font-size: 1.35rem; font-weight: 620; letter-spacing: -0.022em;
+  color: #fff;
+}
+.hero3d__meta span { font-size: 0.78rem; color: rgba(245, 245, 247, 0.5); letter-spacing: 0.01em; }
+
+/* The ball's stage. The canvas fills it; the glow sits behind. */
+.stage {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: min(56vh, 620px);
+  margin-inline: auto;
+  touch-action: pan-y;                 /* horizontal drag is ours, scroll is theirs */
+  cursor: grab;
+  border-radius: 50%;
+}
+.stage.is-grabbing { cursor: grabbing; }
+.stage:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.7); outline-offset: 14px; }
+.stage__glow {
+  position: absolute;
+  inset: 6%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 36%, rgba(255, 150, 70, 0.42), rgba(255, 90, 20, 0.10) 58%, transparent 72%);
+  filter: blur(34px);
+  pointer-events: none;
+}
+/* Contact shadow, so the ball sits in the scene instead of floating on it. */
+.stage__shadow {
+  position: absolute;
+  left: 50%; bottom: -2%;
+  width: 62%; height: 8%;
+  translate: -50% 0;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62), transparent 72%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+#hero-canvas {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.stage__fallback { position: absolute; inset: 8%; z-index: 1; display: none; }
+.no-webgl .stage__fallback { display: block; }
+.no-webgl #hero-canvas, .no-webgl .stage__hint { display: none; }
+
+.stage__hint {
+  position: absolute;
+  left: 50%; bottom: -34px;
+  translate: -50% 0;
+  z-index: 2;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap;
+  transition: opacity 400ms var(--ease-out);
+}
+.stage.is-grabbing .stage__hint { opacity: 0; }
+
+@media (max-width: 900px) {
+  .hero3d { min-height: auto; padding-bottom: 76px; }
+  .hero3d__inner { grid-template-columns: 1fr; text-align: center; }
+  .hero3d__copy { max-width: none; margin-inline: auto; }
+  .hero3d__sub { margin-inline: auto; }
+  .hero3d__actions, .hero3d__meta { justify-content: center; }
+  .stage { order: -1; max-width: min(72vw, 400px); margin-bottom: 44px; }
+}
+
+/* --- Marquee ------------------------------------------------------------- */
+.ticker {
+  border-block: 1px solid var(--hairline-soft);
+  background: var(--bg-elevated);
+  overflow: hidden;
+  padding: 15px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.ticker__track {
+  display: flex;
+  gap: 52px;
+  width: max-content;
+  animation: ticker 42s linear infinite;
+}
+.ticker__track span {
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-tertiary);
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.ticker__track span::before {
+  content: '';
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+@keyframes ticker { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .ticker__track { animation: none; }
+  .ticker { -webkit-mask-image: none; mask-image: none; }
+}
+
+/* --- 3D tilt cards ------------------------------------------------------- */
+.tilt-scene { perspective: 1100px; }
+.tilt {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+/* A highlight that tracks the pointer across the surface. */
+.tilt__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.16), transparent 62%);
+  transition: opacity 320ms var(--ease-out);
+}
+.tilt:hover .tilt__sheen { opacity: 1; }
+.tilt > * { transform: translateZ(0.01px); }
+.tilt__lift { transform: translateZ(38px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tilt { transform: none !important; }
+  .tilt__sheen { display: none; }
+}
+@media (hover: none) {
+  .tilt__sheen { display: none; }
+}
+
+/* --- Panels -------------------------------------------------------------- */
+.panel {
+  position: relative;
+  color: var(--ink);
+  border-radius: var(--r-xl);
+  padding: clamp(28px, 4vw, 52px);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.panel--dark {
+  background: linear-gradient(158deg, #16161a, #0a0a0c 62%);
+  color: var(--ink-on-deep);
+  box-shadow: var(--shadow-md);
+}
+.panel--dark .t-body { color: rgba(245, 245, 247, 0.66); }
+.panel--accent {
+  background: linear-gradient(150deg, #e8611a, #b83f05);
+  color: #fff;
+}
+.panel--accent .t-body { color: rgba(255, 255, 255, 0.82); }
+.panel--accent .eyebrow { color: rgba(255, 255, 255, 0.72); }
+.panel__figure { padding: 26px 0 8px; display: grid; place-items: center; }
+.panel__figure--push { margin-top: auto; }
+.panel__figure svg { width: min(100%, 200px); }
+
+a.tilt { color: inherit; text-decoration: none; }
+a.tilt:hover { text-decoration: none; }
+a.tilt .link-arrow { color: var(--accent); font-weight: 550; }
+
+.mosaic {
+  display: grid;
+  gap: clamp(14px, 1.8vw, 22px);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.mosaic--feature { grid-template-columns: 1.35fr 1fr; }
+@media (max-width: 860px) { .mosaic--feature { grid-template-columns: 1fr; } }
+
+/* --- Number band --------------------------------------------------------- */
+.band {
+  display: grid;
+  gap: clamp(20px, 4vw, 40px);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  padding: clamp(30px, 4vw, 48px);
+  border-radius: var(--r-xl);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* --- Section rule -------------------------------------------------------- */
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hairline), transparent);
+  border: 0;
+  margin: 0;
+}
+
+/* --- Scroll progress ----------------------------------------------------- */
+.progress {
+  position: fixed;
+  top: var(--nav-h); left: 0;
+  z-index: 99;
+  height: 2px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--accent), #ff9d5c);
+  pointer-events: none;
+}

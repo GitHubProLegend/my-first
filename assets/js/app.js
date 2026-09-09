@@ -658,6 +658,55 @@
     });
   }
 
+
+  /* ---------------------------------------------------------------------
+     3D tilt. The card follows the pointer 1:1 while it is over the card,
+     and springs back when it leaves — from wherever it currently is, so a
+     fast re-entry never snaps.
+     --------------------------------------------------------------------- */
+  function mountTilt() {
+    if (reduced.matches || !matchMedia('(hover: hover)').matches) return;
+    const MAX = 7;   // degrees; past this it stops reading as a surface
+
+    $$('.tilt').forEach((el) => {
+      let rx = 0, ry = 0;
+      const sx = new Spring(0, (v) => { ry = v; apply(); }, { response: 0.36, damping: 1.0 });
+      const sy = new Spring(0, (v) => { rx = v; apply(); }, { response: 0.36, damping: 1.0 });
+      const apply = () => {
+        el.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      };
+
+      el.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const r = el.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width;
+        const py = (e.clientY - r.top) / r.height;
+        el.style.setProperty('--mx', `${px * 100}%`);
+        el.style.setProperty('--my', `${py * 100}%`);
+        sx.set((px - 0.5) * 2 * MAX);
+        sy.set((0.5 - py) * 2 * MAX);
+      });
+
+      el.addEventListener('pointerleave', () => {
+        sx.to(0, { response: 0.5, damping: 1.0 });
+        sy.to(0, { response: 0.5, damping: 1.0 });
+      });
+    });
+  }
+
+  /* Scroll progress, read straight from the scroll position. */
+  function mountProgress() {
+    const bar = $('.progress');
+    if (!bar) return;
+    const paint = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(1, scrollY / max) : 0})`;
+    };
+    paint();
+    addEventListener('scroll', paint, { passive: true });
+    addEventListener('resize', paint, { passive: true });
+  }
+
   /* ---------------------------------------------------------------------
      Page rendering
      --------------------------------------------------------------------- */
@@ -783,6 +832,8 @@
     mountAddButtons();
     mountRails();
     mountFaq();
+    mountTilt();
+    mountProgress();
     mountContactForm();
     mountYear();
     mountReveal();

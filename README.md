@@ -28,6 +28,31 @@ python3 -m http.server 8000
 Product artwork is drawn as inline SVG rather than loaded as images, so it
 stays crisp at any size and follows the colour theme.
 
+## The 3D hero
+
+The basketball on the landing page is real geometry in WebGL, written against
+the raw API with no library and no CDN — it works offline and adds nothing to
+load. `assets/js/hero3d.js` generates the sphere and the four seams as tube
+meshes at runtime, and the pebble grain is procedural noise in the fragment
+shader that perturbs the surface normal, so it holds up at any zoom.
+
+The seams are the real topology: one great circle around the equator, one
+through the poles, and two curved seams that bend one way going down the front
+and the other coming back up.
+
+It is grabbable, and that is where the gesture rules do the work:
+
+- Dragging tracks the pointer 1:1.
+- Releasing hands the spin the pointer's measured velocity, taken from a
+  ~90 ms history rather than the last frame, so a flick reads its real speed.
+- Momentum decays toward a slow idle drift instead of to a dead stop.
+- Grabbing it mid-spin takes over from the current angle and kills the
+  momentum, so there is no fight between your hand and the animation.
+- Arrow keys spin it too, and the stage is focusable and labelled.
+
+Without WebGL the page falls back to a static SVG ball. Under reduced motion
+the idle spin stops but the ball stays draggable.
+
 ## How the motion works
 
 Animation is spring-driven rather than CSS-transition-driven, so it can be
