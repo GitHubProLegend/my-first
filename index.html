@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Key2Chat — bring your own API key</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <h1>Key<span>2</span>Chat</h1>
+    <p class="tagline">Paste an API key. Your AI is chosen automatically.</p>
+
+    <label for="apikey">API key</label>
+    <div class="key-row">
+      <input id="apikey" type="password" placeholder="sk-ant-… / sk-… / AIza…" autocomplete="off" spellcheck="false" />
+      <button id="toggle-key" type="button" title="Show / hide">👁</button>
+    </div>
+
+    <div id="detected" class="detected unknown">
+      <span class="dot"></span>
+      <div>
+        <strong id="detected-provider">No key yet</strong>
+        <small id="detected-note">Enter a key to detect your provider.</small>
+      </div>
+    </div>
+
+    <label for="model">Model</label>
+    <select id="model" disabled></select>
+    <input id="custom-model" class="hidden" placeholder="Exact model id" spellcheck="false" />
+
+    <label for="system">System prompt <small>(optional)</small></label>
+    <textarea id="system" rows="3" placeholder="You are a helpful assistant."></textarea>
+
+    <div class="controls">
+      <label class="check"><input type="checkbox" id="remember" /> Remember key in this browser</label>
+      <button id="clear-chat" type="button" class="ghost">Clear conversation</button>
+    </div>
+
+    <p class="privacy">Your key stays in this browser and is sent only to the provider you chose. Nothing touches a server of ours — there isn't one.</p>
+  </aside>
+
+  <main class="chat">
+    <div id="messages" class="messages">
+      <div class="empty">
+        <h2>Ready when you are</h2>
+        <p>Add a key on the left, then send a prompt.</p>
+      </div>
+    </div>
+    <form id="composer" class="composer">
+      <textarea id="prompt" rows="1" placeholder="Send a message…  (Enter to send, Shift+Enter for newline)"></textarea>
+      <button id="send" type="submit">Send</button>
+    </form>
+    <div id="error" class="error hidden"></div>
+  </main>
+</div>
+<script src="providers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
