@@ -114,3 +114,12 @@ textarea { resize: vertical; }
   .sidebar { border-right: none; border-bottom: 1px solid var(--line); }
   .chat { height: 70vh; }
 }
+
+/* iPad / iOS: respect the safe area and keep the composer reachable above the keyboard. */
+@supports (padding: max(0px)) {
+  .sidebar { padding-left: max(20px, env(safe-area-inset-left)); }
+  .composer { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+}
+
+/* iOS zooms any input under 16px on focus; keep the composer at 16px to prevent it. */
+.composer textarea, .key-row input { font-size: 16px; }
