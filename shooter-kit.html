@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shooter Kit</title>
+<meta name="description" content="A basketball shooting kit built around entry angle — the geometry of what the ball actually sees when it reaches the hoop.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='19' fill='%23E2661C'/%3E%3Cpath d='M6 26c6-14 22-14 28 0' fill='none' stroke='%230E1420' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+/* ==========================================================================
+   BallBetter — Shooter Kit
+   Dark-first. The bare :root carries the complete dark palette; the light
+   palette is defined twice, once for the OS preference and once for an
+   explicit choice, so all three viewer states resolve as a full set.
+   ========================================================================== */
+:root {
+  color-scheme: dark light;
+
+  --ground:      #0E1420;
+  --surface:     #171F2E;
+  --surface-2:   #1F2938;
+  --ink:         #EDF1F6;
+  --ink-2:       #A8B4C4;
+  --ink-3:       #6F7D90;
+  --line:        rgba(173, 188, 209, 0.16);
+  --line-strong: rgba(173, 188, 209, 0.30);
+  --accent:      #E2661C;
+  --accent-ink:  #14100C;
+  --accent-soft: rgba(226, 102, 28, 0.14);
+  --glass:       rgba(14, 20, 32, 0.72);
+  --shadow:      0 1px 2px rgba(0,0,0,.5), 0 18px 44px rgba(0,0,0,.45);
+
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:    "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --f-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --gutter: clamp(20px, 5vw, 56px);
+  --measure: 1180px;
+  --nav-h: 58px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ground:      #EDF1F6;
+    --surface:     #FFFFFF;
+    --surface-2:   #F4F7FA;
+    --ink:         #101722;
+    --ink-2:       #465364;
+    --ink-3:       #6F7D90;
+    --line:        rgba(16, 23, 34, 0.13);
+    --line-strong: rgba(16, 23, 34, 0.26);
+    --accent:      #C4510D;
+    --accent-ink:  #FFFFFF;
+    --accent-soft: rgba(196, 81, 13, 0.10);
+    --glass:       rgba(237, 241, 246, 0.76);
+    --shadow:      0 1px 2px rgba(16,23,34,.06), 0 16px 40px rgba(16,23,34,.10);
+  }
+}
+:root[data-theme="light"] {
+  --ground:      #EDF1F6;
+  --surface:     #FFFFFF;
+  --surface-2:   #F4F7FA;
+  --ink:         #101722;
+  --ink-2:       #465364;
+  --ink-3:       #6F7D90;
+  --line:        rgba(16, 23, 34, 0.13);
+  --line-strong: rgba(16, 23, 34, 0.26);
+  --accent:      #C4510D;
+  --accent-ink:  #FFFFFF;
+  --accent-soft: rgba(196, 81, 13, 0.10);
+  --glass:       rgba(237, 241, 246, 0.76);
+  --shadow:      0 1px 2px rgba(16,23,34,.06), 0 16px 40px rgba(16,23,34,.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 20px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-optical-sizing: auto;
+  overflow-x: hidden;
+}
+
+img, svg, canvas { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { width: 100%; max-width: var(--measure); margin-inline: auto; padding-inline: var(--gutter); }
+
+.skip {
+  position: fixed; top: 10px; left: 10px; z-index: 200;
+  background: var(--surface); color: var(--ink);
+  padding: 10px 16px; border-radius: 8px; box-shadow: var(--shadow);
+  transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+
+/* --- Type ---------------------------------------------------------------- */
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; }
+
+.h-hero {
+  font-size: clamp(2.35rem, 5vw, 3.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+.h-sec {
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+}
+.h-sub {
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  line-height: 1.24;
+  letter-spacing: -0.014em;
+  font-weight: 600;
+}
+p { margin: 0; }
+.lede {
+  font-size: clamp(1.03rem, 1.4vw, 1.16rem);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+.body { color: var(--ink-2); max-width: 64ch; }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+/* --- Chrome -------------------------------------------------------------- */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  height: var(--nav-h);
+  background: var(--glass);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 280ms var(--ease);
+}
+.nav.is-stuck { border-bottom-color: var(--line); }
+.nav__in {
+  height: 100%; display: flex; align-items: center; gap: 18px;
+  max-width: var(--measure); margin-inline: auto; padding-inline: var(--gutter);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--f-display); font-weight: 700; letter-spacing: -0.02em; font-size: 1.02rem;
+  margin-right: auto;
+}
+.brand svg { width: 20px; height: 20px; }
+.nav__links { display: flex; gap: 22px; }
+.nav__links a {
+  font-size: 0.86rem; color: var(--ink-2);
+  transition: color 180ms var(--ease);
+}
+.nav__links a:hover { color: var(--ink); }
+@media (max-width: 720px) { .nav__links { display: none; } }
+
+.btn {
+  --bg: var(--accent); --fg: var(--accent-ink);
+  appearance: none; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 12px 22px; min-height: 44px;
+  font: inherit; font-family: var(--f-body); font-size: 0.95rem; font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--fg); background: var(--bg);
+  border-radius: 8px;
+  transition: transform 110ms var(--ease), filter 180ms var(--ease), background-color 180ms var(--ease);
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.is-press { transform: scale(0.972); }
+.btn--line {
+  --bg: transparent; --fg: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.btn--line:hover { filter: none; background: var(--surface-2); }
+.btn--sm { padding: 8px 15px; min-height: 36px; font-size: 0.86rem; }
+
+/* --- Hero ---------------------------------------------------------------- */
+.hero {
+  border-bottom: 1px solid var(--line);
+  padding: clamp(34px, 5vw, 62px) 0 clamp(30px, 4vw, 48px);
+}
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  gap: clamp(26px, 4vw, 56px);
+  align-items: center;
+}
+.hero__copy > * + * { margin-top: 18px; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* The measurement rail: the page's thesis, stated in its own units. */
+.rail {
+  display: grid;
+  gap: 0;
+  margin-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.rail__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.rail__k { font-size: 0.84rem; color: var(--ink-3); }
+.rail__v { font-family: var(--f-mono); font-size: 0.95rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+.rail__v em { font-style: normal; color: var(--accent); }
+
+/* --- 3D stage ------------------------------------------------------------ */
+.stage {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(72% 68% at 62% 40%, rgba(226, 102, 28, 0.13), transparent 68%),
+    linear-gradient(168deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--line);
+  cursor: grab;
+  touch-action: pan-y;
+}
+.stage.is-grab { cursor: grabbing; }
+.stage:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+#kit-canvas { width: 100%; height: 100%; }
+.stage__fallback { position: absolute; inset: 8%; display: none; }
+.no-webgl .stage__fallback { display: block; }
+.no-webgl #kit-canvas { display: none; }
+
+.stage__hint {
+  position: absolute; left: 14px; bottom: 12px;
+  font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-3);
+  transition: opacity 300ms var(--ease);
+}
+.stage.is-grab .stage__hint { opacity: 0; }
+.stage__tag {
+  position: absolute; right: 14px; top: 12px;
+  font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+@media (max-width: 860px) {
+  .hero__grid { grid-template-columns: 1fr; }
+  .stage { order: -1; aspect-ratio: 4 / 3; }
+}
+
+/* --- Sections ------------------------------------------------------------ */
+.sec { padding: clamp(48px, 7vw, 84px) 0; border-bottom: 1px solid var(--line); }
+.sec__head { max-width: 66ch; }
+.sec__head > * + * { margin-top: 14px; }
+.sec__head + * { margin-top: clamp(28px, 4vw, 44px); }
+
+/* --- In the box: ruled rows, not a field of cards ------------------------ */
+.rows { border-top: 1px solid var(--line); }
+.row {
+  display: grid;
+  grid-template-columns: 44px minmax(130px, 0.8fr) minmax(0, 1.7fr) 132px;
+  gap: clamp(12px, 2vw, 28px);
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row__ico { width: 44px; height: 44px; color: var(--accent); }
+.row__n { font-family: var(--f-display); font-size: 1.05rem; font-weight: 700; letter-spacing: -0.018em; }
+.row__d { color: var(--ink-2); font-size: 0.93rem; }
+.row__s {
+  font-family: var(--f-mono); font-size: 0.82rem; color: var(--ink-3);
+  white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right;
+}
+@media (max-width: 760px) {
+  .row { grid-template-columns: 36px 1fr; row-gap: 6px; }
+  .row__ico { width: 36px; height: 36px; }
+  .row__d, .row__s { grid-column: 2; text-align: left; }
+}
+
+/* --- Geometry ------------------------------------------------------------ */
+.geo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(26px, 4vw, 52px);
+  align-items: start;
+}
+@media (max-width: 900px) { .geo { grid-template-columns: 1fr; } }
+
+.figure {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: clamp(18px, 2.4vw, 26px);
+}
+.figure figcaption {
+  font-family: var(--f-mono); font-size: 0.74rem; color: var(--ink-3);
+  margin-top: 14px; line-height: 1.5;
+}
+
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-mono); font-size: 0.86rem; }
+caption {
+  text-align: left; font-family: var(--f-body); font-size: 0.84rem;
+  color: var(--ink-3); padding-bottom: 10px;
+}
+th, td { padding: 10px 12px 10px 0; text-align: left; font-variant-numeric: tabular-nums; }
+thead th {
+  font-weight: 500; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-3); border-bottom: 1px solid var(--line-strong);
+}
+tbody tr { border-bottom: 1px solid var(--line); }
+tbody tr[data-key="true"] td { color: var(--accent); }
+tbody td:first-child { color: var(--ink); }
+
+/* --- The ladder: a real sequence, so it gets real numbers ---------------- */
+.ladder { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.ladder__i {
+  background: var(--surface);
+  padding: 20px clamp(16px, 2vw, 24px);
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: clamp(12px, 2vw, 22px);
+  align-items: baseline;
+}
+.ladder__n { font-family: var(--f-mono); font-size: 0.86rem; color: var(--accent); }
+.ladder__t { font-family: var(--f-display); font-weight: 700; font-size: 1.02rem; letter-spacing: -0.016em; }
+.ladder__d { color: var(--ink-2); font-size: 0.9rem; margin-top: 3px; max-width: 52ch; }
+.ladder__m { font-family: var(--f-mono); font-size: 0.82rem; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .ladder__i { grid-template-columns: 34px 1fr; }
+  .ladder__m { grid-column: 2; }
+}
+
+/* --- Close --------------------------------------------------------------- */
+.close {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(24px, 3.4vw, 40px);
+}
+@media (max-width: 720px) { .close { grid-template-columns: 1fr; } }
+.price { font-family: var(--f-mono); font-size: 1.6rem; color: var(--ink); letter-spacing: -0.02em; }
+
+.foot { padding: 30px 0 42px; }
+.foot__in { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: space-between; }
+.foot p { font-size: 0.8rem; color: var(--ink-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 140ms !important; }
+  .btn.is-press { transform: none; opacity: 0.75; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav { background: var(--ground); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --ink-2: var(--ink); --ink-3: var(--ink); --line: var(--line-strong); }
+  .nav { background: var(--ground); backdrop-filter: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="#main">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <path d="M5 27C11 14 29 14 35 27" fill="none" stroke="var(--accent, #E2661C)" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      BallBetter
+    </a>
+    <nav class="nav__links" aria-label="Sections">
+      <a href="#kit">In the box</a>
+      <a href="#geometry">The geometry</a>
+      <a href="#ladder">The ladder</a>
+      <a href="#specs">Specs</a>
+    </nav>
+    <a class="btn btn--sm" id="nav-cta" href="#get">Get the kit</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================= HERO ============================= -->
+  <section class="hero">
+    <div class="wrap hero__grid">
+      <div class="hero__copy">
+        <p class="eyebrow">Shooter Kit</p>
+        <h1 class="h-hero">Shoot it the same way every time.</h1>
+        <p class="lede">
+          Every piece in this box exists to move one number: the angle the ball is
+          travelling when it reaches the rim. Get that to 45&deg; and the hoop stops
+          being a target you have to hit perfectly.
+        </p>
+        <div class="hero__actions">
+          <a class="btn" href="#get">Get the Shooter Kit &mdash; $129</a>
+          <a class="btn btn--line" href="#kit">What&rsquo;s inside</a>
+        </div>
+
+        <dl class="rail">
+          <div class="rail__row">
+            <dt class="rail__k">Target entry angle</dt>
+            <dd class="rail__v"><em>45&deg;</em></dd>
+          </div>
+          <div class="rail__row">
+            <dt class="rail__k">Margin around the ball at 45&deg;</dt>
+            <dd class="rail__v">3.34&Prime;</dd>
+          </div>
+          <div class="rail__row">
+            <dt class="rail__k">Margin at 35&deg;</dt>
+            <dd class="rail__v">0.93&Prime;</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="stage" id="stage" tabindex="0" role="img"
+           aria-label="A basketball on a 48-degree shooting arc into the hoop, in three dimensions. Drag it, or use the arrow keys, to look around it.">
+        <canvas id="kit-canvas"></canvas>
+        <svg class="stage__fallback" viewBox="0 0 400 320" aria-hidden="true">
+          <path d="M18 300C90 96 250 96 322 246" fill="none" stroke="currentColor" stroke-opacity=".35"
+                stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+          <ellipse cx="330" cy="252" rx="52" ry="15" fill="none" stroke="#E2661C" stroke-width="7"/>
+          <path d="M282 256l14 44h68l14-44" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2"/>
+          <path d="M292 272h76M300 288h60" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2"/>
+          <circle cx="128" cy="128" r="34" fill="#E2661C"/>
+          <g fill="none" stroke="#2A1206" stroke-width="2.4">
+            <path d="M94 128h68M128 94v68M104 104c14 12 14 36 0 48M152 104c-14 12-14 36 0 48"/>
+          </g>
+        </svg>
+        <span class="stage__hint">Drag to orbit</span>
+        <span class="stage__tag num">48&deg; release &middot; 45&deg; entry</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ IN THE BOX ======================== -->
+  <section class="sec" id="kit">
+    <div class="wrap">
+      <div class="sec__head">
+        <p class="eyebrow">In the box</p>
+        <h2 class="h-sec">Five pieces. Each one has a job.</h2>
+        <p class="body">
+          Nothing in here is a novelty. If a piece could not be tied to a measurable
+          change in entry angle or release repeatability, it did not make the box.
+        </p>
+      </div>
+
+      <!-- ===================================================================
+           KIT CONTENTS — swap these five rows for the real Shooter Kit items.
+           Each row is: icon, name, description, spec. Nothing else references
+           them, so editing here is the whole change.
+           =================================================================== -->
+      <div class="rows">
+        <div class="row">
+          <svg class="row__ico" viewBox="0 0 44 44" aria-hidden="true">
+            <circle cx="22" cy="22" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M7 22h30M22 7v30M11.5 11.5c7 6 7 15 0 21M32.5 11.5c-7 6-7 15 0 21"
+                  fill="none" stroke="currentColor" stroke-width="1.6"/>
+          </svg>
+          <p class="row__n">Training ball</p>
+          <p class="row__d">Full-grain composite, pressed pebble. Ships at game feel, so nothing about your release has to change while you train.</p>
+          <p class="row__s">29.5&Prime; &middot; 22 oz</p>
+        </div>
+
+        <div class="row">
+          <svg class="row__ico" viewBox="0 0 44 44" aria-hidden="true">
+            <path d="M12 30c0-8 4-13 10-13s10 5 10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M15 17V9M22 15V7M29 17v-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M11 30h22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p class="row__n">Form guide</p>
+          <p class="row__d">A moulded guide that sits under the shooting hand and stops the off-hand thumb from turning the ball at release.</p>
+          <p class="row__s">S &middot; M &middot; L</p>
+        </div>
+
+        <div class="row">
+          <svg class="row__ico" viewBox="0 0 44 44" aria-hidden="true">
+            <ellipse cx="22" cy="26" rx="15" ry="6" fill="none" stroke="currentColor" stroke-width="2"/>
+            <ellipse cx="22" cy="18" rx="15" ry="6" fill="none" stroke="currentColor" stroke-width="2" stroke-opacity=".5"/>
+          </svg>
+          <p class="row__n">Five spot markers</p>
+          <p class="row__d">Low-profile discs that stay put on hardwood. They set the five-spot ladder so every session starts from the same floor.</p>
+          <p class="row__s">5 &times; 7&Prime; disc</p>
+        </div>
+
+        <div class="row">
+          <svg class="row__ico" viewBox="0 0 44 44" aria-hidden="true">
+            <path d="M6 32C14 12 30 12 38 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 6"/>
+            <path d="M6 32h6M32 26l6 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="22" cy="16" r="4" fill="currentColor"/>
+          </svg>
+          <p class="row__n">Arc card</p>
+          <p class="row__d">A sightline card you wedge on the rim. Stand behind it and a shot at the right arc clears the top edge; a flat one does not.</p>
+          <p class="row__s">45&deg; sightline</p>
+        </div>
+
+        <div class="row">
+          <svg class="row__ico" viewBox="0 0 44 44" aria-hidden="true">
+            <path d="M16 14v-2a6 6 0 0 1 12 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <rect x="8" y="14" width="28" height="18" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 21h28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-opacity=".6"/>
+          </svg>
+          <p class="row__n">Carry bag</p>
+          <p class="row__d">Holds the ball, the markers and the guide with the bag still closed, so the kit travels as one thing rather than five.</p>
+          <p class="row__s">Recycled 600D</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ GEOMETRY ========================== -->
+  <section class="sec" id="geometry">
+    <div class="wrap">
+      <div class="sec__head">
+        <p class="eyebrow">The geometry</p>
+        <h2 class="h-sec">The hoop the ball actually sees.</h2>
+        <p class="body">
+          A rim is 18&Prime; across, but only to a ball falling straight down. Come in
+          shallow and the opening the ball meets is an ellipse, and it narrows fast.
+          This is the whole argument for arc, and it is arithmetic rather than opinion.
+        </p>
+      </div>
+
+      <div class="geo">
+        <figure class="figure" style="margin:0">
+          <svg viewBox="0 0 560 272" role="img"
+               aria-label="Two hoops drawn to the same scale, seen along the ball's flight path. At a 45 degree entry the opening is 12.73 inches across its narrow axis, leaving 3.34 inches around the ball. At 35 degrees it is 10.32 inches, leaving 0.93 inches.">
+            <!-- One scale throughout: 14 px = 1 inch, on both axes.
+                 Rim 18" wide; narrow axis = 18 x sin(entry); ball 9.39" across. -->
+            <g font-family="IBM Plex Mono, monospace" font-size="11">
+
+              <g transform="translate(14 20)">
+                <text x="0" y="0" fill="#E2661C">45&#176; ENTRY</text>
+                <ellipse cx="126" cy="106" rx="126" ry="89.1"
+                         fill="none" stroke="#E2661C" stroke-width="2"/>
+                <circle cx="126" cy="106" r="65.7"
+                        fill="#E2661C" fill-opacity=".15" stroke="#E2661C" stroke-width="1.5"/>
+                <path d="M126 16.9V33M126 179.1V163" stroke="#E2661C" stroke-width="1" stroke-opacity=".8"/>
+                <text x="126" y="228" text-anchor="middle" fill="currentColor" fill-opacity=".8">12.73&#8243; &#183; 3.34&#8243; margin</text>
+              </g>
+
+              <g transform="translate(294 20)">
+                <text x="0" y="0" fill="currentColor" fill-opacity=".8">35&#176; ENTRY</text>
+                <ellipse cx="126" cy="106" rx="126" ry="72.2"
+                         fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="2"/>
+                <circle cx="126" cy="106" r="65.7"
+                        fill="currentColor" fill-opacity=".07" stroke="currentColor" stroke-opacity=".5" stroke-width="1.5"/>
+                <path d="M126 33.8V33M126 178.2V179" stroke="currentColor" stroke-opacity=".5" stroke-width="1"/>
+                <text x="126" y="228" text-anchor="middle" fill="currentColor" fill-opacity=".8">10.32&#8243; &#183; 0.93&#8243; margin</text>
+              </g>
+            </g>
+          </svg>
+          <figcaption>
+            Both drawn at one scale, seen along the ball&rsquo;s flight path. The ellipse is
+            the 18&Prime; rim as the falling ball meets it; the circle is a 29.5&Prime; ball,
+            9.39&Prime; across. Seven degrees closes most of the gap between them.
+          </figcaption>
+        </figure>
+
+        <div>
+          <div class="table-scroll">
+            <table>
+              <caption>Effective opening = 18&Prime; &times; sin(entry angle). Margin is what is left once the ball is in it.</caption>
+              <thead>
+                <tr><th scope="col">Entry</th><th scope="col">Opening</th><th scope="col">Margin</th><th scope="col">vs 45&deg;</th></tr>
+              </thead>
+              <tbody>
+                <tr data-key="true"><th scope="row" style="font-weight:400">45&deg;</th><td>12.73&Prime;</td><td>3.34&Prime;</td><td>&mdash;</td></tr>
+                <tr><th scope="row" style="font-weight:400">42&deg;</th><td>12.04&Prime;</td><td>2.65&Prime;</td><td>&minus;21%</td></tr>
+                <tr><th scope="row" style="font-weight:400">40&deg;</th><td>11.57&Prime;</td><td>2.18&Prime;</td><td>&minus;35%</td></tr>
+                <tr><th scope="row" style="font-weight:400">38&deg;</th><td>11.08&Prime;</td><td>1.69&Prime;</td><td>&minus;49%</td></tr>
+                <tr><th scope="row" style="font-weight:400">35&deg;</th><td>10.32&Prime;</td><td>0.93&Prime;</td><td>&minus;72%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="body" style="margin-top:22px">
+            Seven degrees of arc is the difference between three and a bit inches of
+            room and less than one. That is why a flat shooter lives and dies on
+            perfect alignment, and why the same miss that rattles out for them drops
+            for someone shooting at 45&deg;.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= LADDER =========================== -->
+  <section class="sec" id="ladder">
+    <div class="wrap">
+      <div class="sec__head">
+        <p class="eyebrow">The five-spot ladder</p>
+        <h2 class="h-sec">One session, run in order.</h2>
+        <p class="body">
+          The markers set these five spots. The order is the point: corners are the
+          shortest three-pointers on the floor, so you start where the shot is easiest
+          and work toward the one that needs the most arc.
+        </p>
+      </div>
+
+      <ol class="ladder" style="margin:0;padding:0;list-style:none">
+        <li class="ladder__i">
+          <span class="ladder__n">01</span>
+          <div>
+            <p class="ladder__t">Right corner</p>
+            <p class="ladder__d">Flattest release of the five. Feet square to the baseline, and no drift toward the line.</p>
+          </div>
+          <span class="ladder__m">22&prime;0&Prime; &middot; 10 makes</span>
+        </li>
+        <li class="ladder__i">
+          <span class="ladder__n">02</span>
+          <div>
+            <p class="ladder__t">Right wing</p>
+            <p class="ladder__d">The extra 21 inches show up as arc, not effort. Same release, higher finish.</p>
+          </div>
+          <span class="ladder__m">23&prime;9&Prime; &middot; 10 makes</span>
+        </li>
+        <li class="ladder__i">
+          <span class="ladder__n">03</span>
+          <div>
+            <p class="ladder__t">Top of the key</p>
+            <p class="ladder__d">Squarest look at the rim, so it is the honest read on your arc. Check the card here.</p>
+          </div>
+          <span class="ladder__m">23&prime;9&Prime; &middot; 10 makes</span>
+        </li>
+        <li class="ladder__i">
+          <span class="ladder__n">04</span>
+          <div>
+            <p class="ladder__t">Left wing</p>
+            <p class="ladder__d">Mirror of 02. Any difference between the two sides is a guide-hand problem.</p>
+          </div>
+          <span class="ladder__m">23&prime;9&Prime; &middot; 10 makes</span>
+        </li>
+        <li class="ladder__i">
+          <span class="ladder__n">05</span>
+          <div>
+            <p class="ladder__t">Left corner</p>
+            <p class="ladder__d">Finish where you started, tired. If the arc holds here, it will hold in a game.</p>
+          </div>
+          <span class="ladder__m">22&prime;0&Prime; &middot; 10 makes</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================== SPECS =========================== -->
+  <section class="sec" id="specs">
+    <div class="wrap">
+      <div class="sec__head">
+        <p class="eyebrow">Specifications</p>
+        <h2 class="h-sec">What you are actually buying.</h2>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <tbody>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Ball</th><td style="color:var(--ink)">Size 7 &middot; 29.5&Prime; &middot; 22 oz &middot; indoor composite</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Guide sizes</th><td style="color:var(--ink)">S (7&ndash;8&Prime; span) &middot; M (8&ndash;9&Prime;) &middot; L (9&Prime;+)</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Markers</th><td style="color:var(--ink)">5 discs &middot; 7&Prime; &middot; 2 mm &middot; non-marking</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Arc card</th><td style="color:var(--ink)">Rim-mounted &middot; 45&deg; sightline &middot; tool-free</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Bag</th><td style="color:var(--ink)">Recycled 600D &middot; holds the kit assembled</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Warranty</th><td style="color:var(--ink)">Two years on the ball and bag &middot; one year on the guide</td></tr>
+            <tr><th scope="row" style="font-weight:400;color:var(--ink-3)">Returns</th><td style="color:var(--ink)">60 days, played-in, return shipping covered</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =============================== GET ============================ -->
+  <section class="sec" id="get" style="border-bottom:0">
+    <div class="wrap">
+      <div class="close">
+        <div>
+          <h2 class="h-sub">Shooter Kit</h2>
+          <p class="body" style="margin-top:8px">
+            Ball, form guide, five markers, arc card and bag. Free shipping, and sixty
+            days to send it back if your arc has not moved.
+          </p>
+        </div>
+        <div style="display:grid;gap:12px;justify-items:start">
+          <p class="price">$129</p>
+          <!-- Replace this href with the live product URL. -->
+          <a class="btn" id="buy" href="product.html?id=shooter-kit">Get the Shooter Kit</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot__in">
+    <p>&copy; <span id="yr">2026</span> BallBetter</p>
+    <p>Entry-angle figures are geometry: opening = 18&Prime; &times; sin&thinsp;&theta;.</p>
+  </div>
+</footer>
+
+<script>
+/* ==========================================================================
+   The stage: a rim, a net, the shot's trajectory and the ball sitting on it,
+   drawn in WebGL with no library. Geometry is generated here; the leather
+   grain is procedural in the shader.
+
+   Gestures follow the same rules as the rest of the site: dragging tracks the
+   pointer 1:1, releasing hands the spin the velocity measured over the last
+   ~90 ms, and letting go springs the scene back to its hero angle from
+   wherever it currently is.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var canvas = document.getElementById('kit-canvas');
+  var stage = document.getElementById('stage');
+  if (!canvas || !stage) return;
+
+  var gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: false })
+        || canvas.getContext('experimental-webgl');
+  if (!gl) { document.documentElement.className += ' no-webgl'; return; }
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ---- Matrices --------------------------------------------------------- */
+  function perspective(fovy, aspect, near, far) {
+    var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+    return new Float32Array([
+      f / aspect, 0, 0, 0,
+      0, f, 0, 0,
+      0, 0, (far + near) * nf, -1,
+      0, 0, 2 * far * near * nf, 0
+    ]);
+  }
+  function multiply(a, b) {
+    var o = new Float32Array(16), c, r;
+    for (c = 0; c < 4; c++) {
+      for (r = 0; r < 4; r++) {
+        o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] +
+                       a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+      }
+    }
+    return o;
+  }
+  function rotationYX(yaw, pitch) {
+    var cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var cx = Math.cos(pitch), sx = Math.sin(pitch);
+    // Ry * Rx, column-major
+    return new Float32Array([
+      cy, 0, -sy, 0,
+      sy * sx, cx, cy * sx, 0,
+      sy * cx, -sx, cy * cx, 0,
+      0, 0, 0, 1
+    ]);
+  }
+  /* Uniform scale then translate — keeps the normal matrix a pure rotation. */
+  function place(x, y, z, s) {
+    return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, x,y,z,1]);
+  }
+  function mat3of(m) {
+    return new Float32Array([m[0],m[1],m[2], m[4],m[5],m[6], m[8],m[9],m[10]]);
+  }
+  /* The model matrix is rotation × uniform scale, so dividing the rotation
+     block by the scale gives a correct normal matrix. */
+  function normalMat(m, scale) {
+    var s = 1 / scale;
+    return new Float32Array([
+      m[0]*s, m[1]*s, m[2]*s,
+      m[4]*s, m[5]*s, m[6]*s,
+      m[8]*s, m[9]*s, m[10]*s
+    ]);
+  }
+
+  /* ---- Geometry --------------------------------------------------------- */
+  function sphere(seg, rings) {
+    var pos = [], idx = [], x, y;
+    for (y = 0; y <= rings; y++) {
+      var th = (y / rings) * Math.PI, st = Math.sin(th), ct = Math.cos(th);
+      for (x = 0; x <= seg; x++) {
+        var ph = (x / seg) * Math.PI * 2;
+        pos.push(st * Math.cos(ph), ct, st * Math.sin(ph));
+      }
+    }
+    for (y = 0; y < rings; y++) {
+      for (x = 0; x < seg; x++) {
+        var a = y * (seg + 1) + x, b = a + seg + 1;
+        idx.push(a, a + 1, b, b, a + 1, b + 1);
+      }
+    }
+    return { pos: new Float32Array(pos), idx: new Uint16Array(idx) };
+  }
+
+  /* A tube hugging the unit sphere — used for the ball's seams, where the
+     radial direction gives a frame that cannot twist. */
+  function sphereTube(pts, radius, sides) {
+    var pos = [], nrm = [], idx = [], n = pts.length, i, s;
+    for (i = 0; i < n; i++) {
+      var p = pts[i], nx = pts[(i + 1) % n], pv = pts[(i - 1 + n) % n];
+      var tx = nx[0] - pv[0], ty = nx[1] - pv[1], tz = nx[2] - pv[2];
+      var tl = Math.sqrt(tx*tx + ty*ty + tz*tz) || 1; tx /= tl; ty /= tl; tz /= tl;
+      var rl = Math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]) || 1;
+      var rx = p[0]/rl, ry = p[1]/rl, rz = p[2]/rl;
+      var bx = ty*rz - tz*ry, by = tz*rx - tx*rz, bz = tx*ry - ty*rx;
+      var bl = Math.sqrt(bx*bx + by*by + bz*bz) || 1; bx /= bl; by /= bl; bz /= bl;
+      for (s = 0; s <= sides; s++) {
+        var a = (s / sides) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+        var ox = rx*ca + bx*sa, oy = ry*ca + by*sa, oz = rz*ca + bz*sa;
+        pos.push(p[0] + ox*radius, p[1] + oy*radius, p[2] + oz*radius);
+        nrm.push(ox, oy, oz);
+      }
+    }
+    for (i = 0; i < n; i++) {
+      var a0 = i * (sides + 1), b0 = ((i + 1) % n) * (sides + 1);
+      for (s = 0; s < sides; s++) {
+        idx.push(a0+s, a0+s+1, b0+s, b0+s, a0+s+1, b0+s+1);
+      }
+    }
+    return { pos: new Float32Array(pos), nrm: new Float32Array(nrm), idx: new Uint16Array(idx) };
+  }
+
+  /* A general tube along an open or closed polyline, framed by parallel
+     transport so it does not corkscrew. */
+  function tube(pts, radius, sides, closed) {
+    var pos = [], nrm = [], idx = [], n = pts.length, i, s;
+    var tangents = [];
+    for (i = 0; i < n; i++) {
+      var a = pts[closed ? (i - 1 + n) % n : Math.max(0, i - 1)];
+      var b = pts[closed ? (i + 1) % n : Math.min(n - 1, i + 1)];
+      var tx = b[0]-a[0], ty = b[1]-a[1], tz = b[2]-a[2];
+      var tl = Math.sqrt(tx*tx + ty*ty + tz*tz) || 1;
+      tangents.push([tx/tl, ty/tl, tz/tl]);
+    }
+    // seed a normal perpendicular to the first tangent
+    var t0 = tangents[0];
+    var up = Math.abs(t0[1]) > 0.9 ? [1,0,0] : [0,1,0];
+    var nx0 = up[1]*t0[2] - up[2]*t0[1], ny0 = up[2]*t0[0] - up[0]*t0[2], nz0 = up[0]*t0[1] - up[1]*t0[0];
+    var nl0 = Math.sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0) || 1;
+    var N = [nx0/nl0, ny0/nl0, nz0/nl0];
+
+    for (i = 0; i < n; i++) {
+      var t = tangents[i];
+      // re-orthogonalise the carried normal against the current tangent
+      var d = N[0]*t[0] + N[1]*t[1] + N[2]*t[2];
+      var ux = N[0] - t[0]*d, uy = N[1] - t[1]*d, uz = N[2] - t[2]*d;
+      var ul = Math.sqrt(ux*ux + uy*uy + uz*uz) || 1;
+      N = [ux/ul, uy/ul, uz/ul];
+      var Bx = t[1]*N[2] - t[2]*N[1], By = t[2]*N[0] - t[0]*N[2], Bz = t[0]*N[1] - t[1]*N[0];
+      var p = pts[i];
+      for (s = 0; s <= sides; s++) {
+        var an = (s / sides) * Math.PI * 2, ca = Math.cos(an), sa = Math.sin(an);
+        var ox = N[0]*ca + Bx*sa, oy = N[1]*ca + By*sa, oz = N[2]*ca + Bz*sa;
+        pos.push(p[0] + ox*radius, p[1] + oy*radius, p[2] + oz*radius);
+        nrm.push(ox, oy, oz);
+      }
+    }
+    var last = closed ? n : n - 1;
+    for (i = 0; i < last; i++) {
+      var a1 = i * (sides + 1), b1 = ((i + 1) % n) * (sides + 1);
+      for (s = 0; s < sides; s++) {
+        idx.push(a1+s, a1+s+1, b1+s, b1+s, a1+s+1, b1+s+1);
+      }
+    }
+    return { pos: new Float32Array(pos), nrm: new Float32Array(nrm), idx: new Uint16Array(idx) };
+  }
+
+  function merge(list) {
+    var pos = [], nrm = [], idx = [], base = 0;
+    list.forEach(function (m) {
+      var i;
+      for (i = 0; i < m.pos.length; i++) pos.push(m.pos[i]);
+      for (i = 0; i < m.nrm.length; i++) nrm.push(m.nrm[i]);
+      for (i = 0; i < m.idx.length; i++) idx.push(m.idx[i] + base);
+      base += m.pos.length / 3;
+    });
+    return { pos: new Float32Array(pos), nrm: new Float32Array(nrm), idx: new Uint16Array(idx) };
+  }
+
+  var sph = function (th, ph) {
+    return [Math.sin(th)*Math.cos(ph), Math.cos(th), Math.sin(th)*Math.sin(ph)];
+  };
+
+  /* ---- The scene, in world units ---------------------------------------
+     The trajectory is a real parabola: vertex (-0.50, 0.6045), passing
+     through the rim centre at (1.40, -0.45). Its slope there is -1.11, an
+     entry angle of 48 degrees — the shot the page is arguing for.            */
+  var A = -0.292, H = -0.50, K = 0.6045;
+  var arcY = function (x) { return A * (x - H) * (x - H) + K; };
+  var RIM_X = 1.40, RIM_Y = -0.45, RIM_R = 0.62;
+  var BALL_X = -1.10, BALL_R = 0.30;
+
+  var meshes = [];
+  function add(m) { meshes.push(m); return meshes.length - 1; }
+
+  var ballMesh = sphere(72, 48);
+
+  // Seams: an equator, a meridian facing us, and two curved seams at the sides.
+  function equator(steps) {
+    var p = [], i;
+    for (i = 0; i < steps; i++) { var t = i / steps * Math.PI * 2; p.push([Math.cos(t), 0, Math.sin(t)]); }
+    return p;
+  }
+  function meridian(phi0, steps) {
+    var p = [], i;
+    for (i = 0; i < steps; i++) {
+      var t = i / steps * Math.PI * 2;
+      p.push([Math.sin(t)*Math.cos(phi0), Math.cos(t), Math.sin(t)*Math.sin(phi0)]);
+    }
+    return p;
+  }
+  function curved(phi0, bulge, steps) {
+    var p = [], i;
+    for (i = 0; i < steps; i++) {
+      var t = i / steps * Math.PI * 2, down = t <= Math.PI;
+      var th = down ? t : 2*Math.PI - t;
+      p.push(sph(th, phi0 + (down ? 1 : -1) * bulge * Math.sin(th)));
+    }
+    return p;
+  }
+  var seamMesh = merge([
+    sphereTube(equator(170), 0.030, 7),
+    sphereTube(meridian(Math.PI/2, 170), 0.030, 7),
+    sphereTube(curved(0, 0.58, 170), 0.030, 7),
+    sphereTube(curved(Math.PI, 0.58, 170), 0.030, 7)
+  ]);
+
+  // Rim: a torus in the horizontal plane.
+  var rimPts = [], ri;
+  for (ri = 0; ri < 96; ri++) {
+    var ra = ri / 96 * Math.PI * 2;
+    rimPts.push([RIM_X + Math.cos(ra)*RIM_R, RIM_Y, Math.sin(ra)*RIM_R]);
+  }
+  var rimMesh = tube(rimPts, 0.048, 10, true);
+
+  // Net: strands that fall and draw in, plus two tie rings.
+  var netParts = [], si, sj;
+  for (si = 0; si < 12; si++) {
+    var sa = si / 12 * Math.PI * 2, strand = [];
+    for (sj = 0; sj <= 10; sj++) {
+      var u = sj / 10;
+      var r = RIM_R * (1 - 0.42 * u * u);
+      var drop = -0.62 * u;
+      strand.push([RIM_X + Math.cos(sa)*r, RIM_Y + drop, Math.sin(sa)*r]);
+    }
+    netParts.push(tube(strand, 0.009, 5, false));
+  }
+  [[0.30, 0.86], [0.56, 0.66]].forEach(function (ring) {
+    var pts = [], i;
+    for (i = 0; i < 56; i++) {
+      var a = i / 56 * Math.PI * 2;
+      pts.push([RIM_X + Math.cos(a)*RIM_R*ring[1], RIM_Y - ring[0], Math.sin(a)*RIM_R*ring[1]]);
+    }
+    netParts.push(tube(pts, 0.008, 5, true));
+  });
+  var netMesh = merge(netParts);
+
+  // Trajectory: dashes along the parabola, so it reads as a measured path.
+  var dashParts = [], dashN = 26, di, dj;
+  for (di = 0; di < dashN; di++) {
+    var seg = [];
+    for (dj = 0; dj <= 4; dj++) {
+      var f = (di + dj / 4 * 0.55) / dashN;
+      var x = -1.95 + f * (RIM_X + 1.95);
+      seg.push([x, arcY(x), 0]);
+    }
+    dashParts.push(tube(seg, 0.017, 6, false));
+  }
+  var arcMesh = merge(dashParts);
+
+  var BALL = add(ballMesh), SEAM = add(seamMesh), RIM = add(rimMesh),
+      NET = add(netMesh), ARC = add(arcMesh);
+
+  /* ---- Shaders ---------------------------------------------------------- */
+  var VS =
+    'attribute vec3 aPos;attribute vec3 aNrm;' +
+    'uniform mat4 uProj,uView,uModel;uniform mat3 uNrmMat;' +
+    'varying vec3 vObj,vNrm,vWorld;' +
+    'void main(){vObj=aPos;vNrm=uNrmMat*aNrm;vec4 w=uModel*vec4(aPos,1.0);' +
+    'vWorld=w.xyz;gl_Position=uProj*uView*w;}';
+
+  var FS = [
+    'precision highp float;',
+    'varying vec3 vObj,vNrm,vWorld;',
+    'uniform mat3 uNrmMat;',
+    'uniform vec3 uColA,uColB,uSpec;',
+    'uniform float uGrain,uRough,uRim;',
+    'float hash(vec3 p){p=fract(p*0.3183099+vec3(0.71,0.113,0.419));p*=17.0;',
+    ' return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+    'float noise(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.0-2.0*f);',
+    ' return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),',
+    '  mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),',
+    '  mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),',
+    '  mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}',
+    'float pebble(vec3 p){return noise(p*64.0)*0.55+noise(p*155.0)*0.45;}',
+    'void main(){',
+    ' vec3 N=normalize(vNrm);',
+    ' float tone=0.5;',
+    ' if(uGrain>0.5){',
+    '  float e=0.0016;vec3 p=normalize(vObj);float c=pebble(p);',
+    '  vec3 g=vec3(pebble(p+vec3(e,0.0,0.0))-c,pebble(p+vec3(0.0,e,0.0))-c,',
+    '   pebble(p+vec3(0.0,0.0,e))-c)/e;',
+    '  N=normalize(uNrmMat*normalize(p-g*0.00042));tone=c;}',
+    ' vec3 V=normalize(vec3(0.0,0.0,5.0)-vWorld);',
+    ' vec3 L1=normalize(vec3(-0.42,0.80,0.62));',
+    ' vec3 L2=normalize(vec3(0.86,-0.10,0.34));',
+    ' float d1=max(dot(N,L1),0.0),d2=max(dot(N,L2),0.0);',
+    ' float rim=pow(1.0-max(dot(N,V),0.0),2.6);',
+    // Base colours are authored in sRGB, so square them into linear first.
+    ' vec3 base=mix(uColA,uColB,clamp(tone*0.6+0.24,0.0,1.0));base*=base;',
+    ' vec3 H=normalize(L1+V);',
+    ' float spec=pow(max(dot(N,H),0.0),uRough)*(uGrain>0.5?0.20:0.28);',
+    ' vec3 col=base*(0.045+d1*1.30)+base*d2*0.16+uSpec*spec',
+    '  +vec3(1.0,0.46,0.16)*rim*uRim;',
+    ' col=col/(col+vec3(0.92));',
+    ' col=pow(col,vec3(0.4545));',
+    ' gl_FragColor=vec4(col,1.0);}'
+  ].join('\n');
+
+  function compile(type, src) {
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  var vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, FS);
+  if (!vs || !fs) { document.documentElement.className += ' no-webgl'; return; }
+  var prog = gl.createProgram();
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    document.documentElement.className += ' no-webgl'; return;
+  }
+  gl.useProgram(prog);
+
+  var aPos = gl.getAttribLocation(prog, 'aPos');
+  var aNrm = gl.getAttribLocation(prog, 'aNrm');
+  var U = {};
+  ['uProj','uView','uModel','uNrmMat','uColA','uColB','uSpec','uGrain','uRough','uRim']
+    .forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+
+  var buffers = meshes.map(function (m) {
+    var vb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vb);
+    gl.bufferData(gl.ARRAY_BUFFER, m.pos, gl.STATIC_DRAW);
+    var nb = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, nb);
+    gl.bufferData(gl.ARRAY_BUFFER, m.nrm || m.pos, gl.STATIC_DRAW);
+    var ib = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.idx, gl.STATIC_DRAW);
+    return { vb: vb, nb: nb, ib: ib, count: m.idx.length };
+  });
+
+  function draw(i) {
+    var b = buffers[i];
+    gl.bindBuffer(gl.ARRAY_BUFFER, b.vb);
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, b.nb);
+    gl.enableVertexAttribArray(aNrm);
+    gl.vertexAttribPointer(aNrm, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b.ib);
+    gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_SHORT, 0);
+  }
+
+  function material(colA, colB, spec, grain, rough, rimAmt) {
+    gl.uniform3f(U.uColA, colA[0], colA[1], colA[2]);
+    gl.uniform3f(U.uColB, colB[0], colB[1], colB[2]);
+    gl.uniform3f(U.uSpec, spec[0], spec[1], spec[2]);
+    gl.uniform1f(U.uGrain, grain);
+    gl.uniform1f(U.uRough, rough);
+    gl.uniform1f(U.uRim, rimAmt);
+  }
+
+  /* ---- Interaction ------------------------------------------------------ */
+  var HOME_YAW = 0.0, HOME_PITCH = 0.20;
+  var st = { yaw: HOME_YAW, pitch: HOME_PITCH, vYaw: 0, vPitch: 0 };
+  var kick = function () {};
+
+  var samples = [];
+  function track(x, y) {
+    var t = (window.performance || Date).now();
+    samples.push({ x: x, y: y, t: t });
+    while (samples.length > 2 && t - samples[0].t > 90) samples.shift();
+  }
+  function velocity() {
+    if (samples.length < 2) return [0, 0];
+    var a = samples[0], b = samples[samples.length - 1], dt = (b.t - a.t) / 1000;
+    return dt > 0 ? [(b.x - a.x) / dt, (b.y - a.y) / dt] : [0, 0];
+  }
+
+  var RAD_PER_PX = 0.0060;
+  var dragging = false, pid = null, lastX = 0, lastY = 0;
+
+  stage.addEventListener('pointerdown', function (e) {
+    dragging = true; pid = e.pointerId;
+    stage.setPointerCapture(e.pointerId);
+    stage.classList.add('is-grab');
+    lastX = e.clientX; lastY = e.clientY;
+    st.vYaw = 0; st.vPitch = 0;          // take over from the live angle
+    samples.length = 0; track(e.clientX, e.clientY);
+    kick();
+    e.preventDefault();
+  });
+  stage.addEventListener('pointermove', function (e) {
+    if (!dragging || e.pointerId !== pid) return;
+    track(e.clientX, e.clientY);
+    st.yaw += (e.clientX - lastX) * RAD_PER_PX;
+    st.pitch += (e.clientY - lastY) * RAD_PER_PX;
+    st.pitch = Math.max(-0.75, Math.min(0.95, st.pitch));
+    lastX = e.clientX; lastY = e.clientY;
+    kick();
+  });
+  function release(e) {
+    if (!dragging || (e && e.pointerId !== pid)) return;
+    dragging = false;
+    stage.classList.remove('is-grab');
+    try { stage.releasePointerCapture(pid); } catch (err) { /* already released */ }
+    var v = velocity();
+    st.vYaw = v[0] * RAD_PER_PX;
+    st.vPitch = Math.max(-4, Math.min(4, v[1] * RAD_PER_PX));
+    kick();
+  }
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+  stage.addEventListener('lostpointercapture', release);
+
+  stage.addEventListener('keydown', function (e) {
+    var k = { ArrowLeft: [-1,0], ArrowRight: [1,0], ArrowUp: [0,-1], ArrowDown: [0,1] }[e.key];
+    if (!k) return;
+    e.preventDefault();
+    st.vYaw += k[0] * 1.5;
+    st.vPitch += k[1] * 0.8;
+    kick();
+  });
+
+  /* ---- Frame ------------------------------------------------------------ */
+  var W = 0, Hh = 0;
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var r = canvas.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    if (w === W && h === Hh) return;
+    W = w; Hh = h; canvas.width = w; canvas.height = h;
+    gl.viewport(0, 0, w, h);
+  }
+  window.addEventListener('resize', function () { resize(); kick(); }, { passive: true });
+
+  var view = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-5.0,1]);
+  var GROUP = 0.72;
+  var raf = 0, last = 0, visible = true;
+
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
+  gl.clearColor(0, 0, 0, 0);
+
+  function frame(now) {
+    raf = 0;
+    var dt = Math.min((now - last) / 1000, 1 / 30);
+    last = now;
+    resize();
+
+    if (!dragging) {
+      // Momentum, then a gentle spring home. Both act on the live value, so a
+      // grab mid-flight simply takes over.
+      var Kk = 4.2, Cc = 2 * Math.sqrt(Kk) * 0.9;
+      st.vYaw += (-Kk * (st.yaw - HOME_YAW) - Cc * st.vYaw) * dt;
+      st.vPitch += (-Kk * (st.pitch - HOME_PITCH) - Cc * st.vPitch) * dt;
+      st.yaw += st.vYaw * dt;
+      st.pitch += st.vPitch * dt;
+      st.pitch = Math.max(-0.75, Math.min(0.95, st.pitch));
+    }
+
+    var rot = rotationYX(st.yaw, st.pitch);
+    var proj = perspective(0.50, W / Hh || 1, 0.1, 60);
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.uniformMatrix4fv(U.uProj, false, proj);
+    gl.uniformMatrix4fv(U.uView, false, view);
+
+    function node(local, scale) {
+      var m = multiply(rot, local);
+      gl.uniformMatrix4fv(U.uModel, false, m);
+      gl.uniformMatrix3fv(U.uNrmMat, false, normalMat(m, scale));
+    }
+
+    var ballLocal = place(BALL_X * GROUP, arcY(BALL_X) * GROUP, 0, BALL_R * GROUP);
+    var sceneLocal = place(0, 0, 0, GROUP);
+
+    // Leather
+    node(ballLocal, BALL_R * GROUP);
+    material([0.52,0.135,0.022], [1.0,0.375,0.062], [1.0,0.80,0.62], 1, 42, 0.28);
+    draw(BALL);
+
+    // Seams — matte rubber
+    material([0.075,0.045,0.030], [0.115,0.070,0.048], [0.30,0.26,0.22], 0, 26, 0.04);
+    draw(SEAM);
+
+    // Rim — painted steel, the one other place the accent appears
+    node(sceneLocal, GROUP);
+    material([0.62,0.24,0.06], [0.92,0.40,0.10], [1.0,0.86,0.70], 0, 30, 0.20);
+    draw(RIM);
+
+    // Net — pale cord
+    material([0.30,0.33,0.39], [0.62,0.66,0.72], [0.6,0.62,0.66], 0, 12, 0.10);
+    draw(NET);
+
+    // Trajectory — quiet, so it reads as annotation rather than object
+    material([0.20,0.24,0.31], [0.40,0.46,0.56], [0.4,0.44,0.5], 0, 16, 0.06);
+    draw(ARC);
+
+    var moving = dragging ||
+      Math.abs(st.vYaw) > 0.0015 || Math.abs(st.vPitch) > 0.0015 ||
+      Math.abs(st.yaw - HOME_YAW) > 0.0015 || Math.abs(st.pitch - HOME_PITCH) > 0.0015;
+    if (visible && !document.hidden && moving) {
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  kick = function () {
+    if (raf || !visible || document.hidden) return;
+    last = (window.performance || Date).now();
+    raf = requestAnimationFrame(frame);
+  };
+
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[0].isIntersecting;
+      kick();
+    }, { threshold: 0.01 }).observe(canvas);
+  }
+  document.addEventListener('visibilitychange', kick);
+
+  resize();
+  // One frame at rest, so the scene is there before anyone touches it.
+  last = (window.performance || Date).now();
+  requestAnimationFrame(frame);
+  if (reduced.matches) { st.vYaw = 0; st.vPitch = 0; }
+})();
+
+/* --- Page chrome --------------------------------------------------------- */
+(function () {
+  'use strict';
+  var nav = document.querySelector('.nav');
+  function onScroll() { nav.classList.toggle('is-stuck', window.scrollY > 4); }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Press feedback on pointerdown, not on click, and cancelled by dragging off.
+  document.addEventListener('pointerdown', function (e) {
+    var el = e.target.closest ? e.target.closest('.btn') : null;
+    if (!el) return;
+    el.classList.add('is-press');
+    var r = el.getBoundingClientRect(), P = 10;
+    function move(ev) {
+      var inside = ev.clientX > r.left - P && ev.clientX < r.right + P &&
+                   ev.clientY > r.top - P && ev.clientY < r.bottom + P;
+      el.classList.toggle('is-press', inside);
+    }
+    function up() {
+      el.classList.remove('is-press');
+      document.removeEventListener('pointermove', move);
+      document.removeEventListener('pointerup', up);
+      document.removeEventListener('pointercancel', up);
+    }
+    document.addEventListener('pointermove', move);
+    document.addEventListener('pointerup', up);
+    document.addEventListener('pointercancel', up);
+  });
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
